@@ -6,6 +6,8 @@ Python backend for TripCut (SAN-51): FastAPI on Modal, Cloudflare R2 multipart u
 - Rollout steps (run by a person): [`docs/runbooks/rollout.md`](docs/runbooks/rollout.md)
 - Schema: [`supabase/migrations/20261101000000_init_schema.sql`](supabase/migrations/20261101000000_init_schema.sql),
   rollback in `supabase/rollback/`
+- Week-1 spike CLI `tripcut ./trip --out ./reels` (SAN-48): [`docs/runbooks/tripcut-cli.md`](docs/runbooks/tripcut-cli.md),
+  eval set in [`eval/README.md`](eval/README.md)
 
 ## Layout
 
@@ -23,6 +25,17 @@ src/tripcut_api/
   schemas/       one pydantic model per file
   services/      TripService, ClipUploadService
   storage/       R2 client + R2MultipartService (every R2 control call)
+src/tripcut_pipeline/   SAN-48 CLI (optional extra `pipeline`; not used by the API image)
+  cli.py         `tripcut` entry point -> run_pipeline
+  ingest/        ffprobe + one ffmpeg pass -> 360p proxy, 2 fps frames, 16 kHz wav
+  score/         PySceneDetect shots, OpenCV blur/exposure/shake, SigLIP, MediaPipe faces + YAMNet
+  direct/        Director protocol, ClaudeHaikuDirectorService, FallbackDirectorService
+  music/         music track + librosa beat grid (cached)
+  render/        beat snap, face-follow 9:16 crop, ffmpeg render + concat
+  metrics/       StageTimerService (wall, core-seconds, peak RSS)
+  evaluation/    summary table, trips.csv, blind rating sheet
+eval/            run_all.py, make_rating_sheet.py, trips.csv, rating_sheet.csv
+assets/music/    CC0 tracks + LICENSE.md
 infra/modal/     Modal app, image and ASGI entry point
 infra/r2/        bucket CORS and lifecycle rules
 supabase/        CLI config, migration, rollback

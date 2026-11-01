@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "edit_lists"],
+  "properties": {
+    "title": {"type": "string"},
+    "edit_lists": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "shots"],
+        "properties": {
+          "version": {"type": "string", "enum": ["cinematic", "fast", "story"]},
+          "shots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["segment_id", "crop"],
+              "properties": {
+                "segment_id": {"type": "string"},
+                "crop": {"type": "string", "enum": ["face", "center"]}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

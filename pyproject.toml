@@ -14,9 +14,27 @@ dependencies = [
     "modal>=1.0,<2.0",
 ]
 
+[project.optional-dependencies]
+# SAN-48 week-1 spike CLI (`tripcut`). Install with `uv sync --extra pipeline`.
+# Not used by the API or its Modal image.
+pipeline = [
+    "scenedetect>=0.6.4",
+    "opencv-python-headless>=4.10",
+    "open_clip_torch>=2.29",
+    "torch>=2.5",
+    "pillow>=10.4",
+    "mediapipe>=0.10.18",
+    "librosa>=0.10",
+    "anthropic>=2.3,<3.0",
+    "numpy>=1.26",
+]
+
+[project.scripts]
+tripcut = "tripcut_pipeline.cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/tripcut_api"]
+packages = ["src/tripcut_api", "src/tripcut_pipeline"]
