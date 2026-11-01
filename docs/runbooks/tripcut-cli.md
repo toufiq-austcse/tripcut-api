@@ -102,6 +102,22 @@ the app then puts the picks in clip order, after filling the reel to its length,
 In timeline order two shots from the same clip can sit next to each other (in `fast` that can look like a jump cut).
 `metrics.json` → `stages.ingest.order` and `stages.ingest.clip_order`; each edit list has an `"order"` field.
 
+### Intro and outro
+
+| Flag | Start and end of every reel |
+|------|-----------------------------|
+| `--intro-outro auto` (default) | fades in from black with the sound; the last shot is held, then fades to black with the music |
+| `--intro-outro off` | hard start and hard end, sound at full level from the first frame |
+
+| Version | Video fade in | Sound fade in | Last shot held to | Video fade out |
+|---------|---------------|---------------|-------------------|----------------|
+| cinematic / story | 0.4 s | 0.5 s | 2.0 s | 1.0 s |
+| fast | 0.2 s | 0.3 s | 1.5 s | 0.6 s |
+
+Env fallback: `TRIPCUT_INTRO_OUTRO`. The last shot is only held as far as its clip has unseen footage.
+The fades are added while the first and last shots are encoded, so they cost no extra pass.
+`metrics.json` → `stages.render.intro_outro`; each edit list has an `"intro_outro"` field.
+
 If the Claude call fails or returns an invalid answer twice, the CLI uses the no-LLM fallback and sets
 `stages.direct.fallback = true` with the reason.
 

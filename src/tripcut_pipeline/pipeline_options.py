@@ -15,6 +15,7 @@ class PipelineOptions:
     transition: str
     loudness_target: float | None
     order: str
+    intro_outro: str
     director: str
     model: str
     duration_s: int

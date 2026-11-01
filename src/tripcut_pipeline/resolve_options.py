@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from tripcut_pipeline.config.director_constants import DEFAULT_DIRECTOR, DEFAULT_MODEL, DIRECTOR_NAMES
+from tripcut_pipeline.config.intro_outro_constants import DEFAULT_INTRO_OUTRO, INTRO_OUTRO_MODES
 from tripcut_pipeline.config.order_constants import DEFAULT_ORDER, ORDER_MODES
 from tripcut_pipeline.config.transition_constants import DEFAULT_TRANSITION, TRANSITION_MODES
 from tripcut_pipeline.config.music_constants import DEFAULT_CLIP_VOLUME, DEFAULT_MUSIC_VOLUME, MUSIC_LIBRARY
@@ -18,7 +19,7 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
     --director > TRIPCUT_DIRECTOR > haiku; TRIPCUT_MODEL > claude-haiku-5-5; --music > TRIPCUT_MUSIC > library;
     --clip-volume > TRIPCUT_CLIP_VOLUME > 0.25; --music-volume > TRIPCUT_MUSIC_VOLUME > 1.0;
     --transition > TRIPCUT_TRANSITION > auto; --loudness > TRIPCUT_LOUDNESS > -16 (off = None);
-    --order > TRIPCUT_ORDER > time.
+    --order > TRIPCUT_ORDER > time; --intro-outro > TRIPCUT_INTRO_OUTRO > auto.
     """
     director = args.director
     if director is None:
@@ -62,6 +63,14 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
     if order not in ORDER_MODES:
         raise BadInputError(f"TRIPCUT_ORDER must be one of {ORDER_MODES}, got {order!r}")
 
+    intro_outro = args.intro_outro
+    if intro_outro is None:
+        intro_outro = os.environ.get("TRIPCUT_INTRO_OUTRO")
+    if intro_outro is None or intro_outro == "":
+        intro_outro = DEFAULT_INTRO_OUTRO
+    if intro_outro not in INTRO_OUTRO_MODES:
+        raise BadInputError(f"TRIPCUT_INTRO_OUTRO must be one of {INTRO_OUTRO_MODES}, got {intro_outro!r}")
+
     return PipelineOptions(
         trip_dir=Path(args.trip_dir).expanduser().resolve(),
         out_dir=Path(args.out).expanduser().resolve(),
@@ -72,6 +81,7 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
         transition=transition,
         loudness_target=loudness_target,
         order=order,
+        intro_outro=intro_outro,
         director=director,
         model=model,
         duration_s=args.duration,

@@ -11,6 +11,8 @@ from tripcut_pipeline.config.transition_constants import TRANSITION_FADE
 from tripcut_pipeline.ingest.clip_meta import ClipMeta
 from tripcut_pipeline.render.audio_mix import AudioMix
 from tripcut_pipeline.render.build_audio_filter import build_audio_filter
+from tripcut_pipeline.render.build_edge_fade_filter import build_edge_fade_filter
+from tripcut_pipeline.render.edge_fades import EdgeFades
 from tripcut_pipeline.render.build_transition_filter import build_transition_filter
 from tripcut_pipeline.render.plan_face_crop import plan_face_crop
 from tripcut_pipeline.render.plan_shot_frames import plan_shot_frames
@@ -24,13 +26,15 @@ def render_reel(
     face_tracks: dict[str, list[tuple[float, float]]],
     music_path: Path | None,
     audio_mix: AudioMix,
+    edges: EdgeFades,
     work_dir: Path,
     out_path: Path,
 ) -> float:
     """Render every shot as an exact number of frames, join them, mix the music with the clip sound.
 
     Only cuts: concat demuxer with -c:v copy (no second video encode). Any crossfade: one ffmpeg pass with
-    xfade + acrossfade (build_transition_filter), which encodes the reel video again. Returns length in s.
+    xfade + acrossfade (build_transition_filter), which encodes the reel video again. The intro/outro fades
+    (edges) go into the first and last shot's own encode, so they cost no extra pass. Returns length in s.
     """
     shot_dir = work_dir / f"shots_{edit_list['version']}"
     shot_dir.mkdir(parents=True, exist_ok=True)
@@ -45,7 +49,8 @@ def render_reel(
         if shot["clip_id"] in face_tracks:
             track = face_tracks[shot["clip_id"]]
         shot_path = shot_dir / f"{index:03d}.mov"
-        render_shot(clip, shot, frame_counts[index], plan_face_crop(clip, shot, track), shot_path)
+        edge_filter = build_edge_fade_filter(index, shot, len(shots), frame_counts[index], edges)
+        render_shot(clip, shot, frame_counts[index], plan_face_crop(clip, shot, track), edge_filter, shot_path)
         shot_paths.append(shot_path)
         total_frames += frame_counts[index]
         if shot["transition"] == TRANSITION_FADE:
@@ -62,7 +67,7 @@ def render_reel(
         if music_path is not None:
             args += ["-stream_loop", "-1", "-i", str(music_path)]
             music_label = f"[{len(shot_paths)}:a]"
-        audio_filter = build_audio_filter("[ca]", music_label, audio_mix, fade_start)
+        audio_filter = build_audio_filter("[ca]", music_label, audio_mix, fade_start, edges.audio_in_s)
         video_args = [
             "-filter_complex", build_transition_filter(shots, frame_counts) + ";" + audio_filter,
             "-map", "[v]", "-map", "[a]",
@@ -76,7 +81,7 @@ def render_reel(
         if music_path is not None:
             args += ["-stream_loop", "-1", "-i", str(music_path)]
             music_label = "[1:a]"
-        audio_filter = build_audio_filter("[0:a]", music_label, audio_mix, fade_start)
+        audio_filter = build_audio_filter("[0:a]", music_label, audio_mix, fade_start, edges.audio_in_s)
         video_args = ["-map", "0:v:0", "-filter_complex", audio_filter, "-map", "[a]", "-c:v", "copy"]
     args += video_args
     args += ["-c:a", "aac", "-b:a", AUDIO_BITRATE, "-t", f"{total:.6f}", "-movflags", "+faststart", str(out_path)]

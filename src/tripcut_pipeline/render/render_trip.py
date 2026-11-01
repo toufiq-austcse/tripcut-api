@@ -8,9 +8,11 @@ from tripcut_pipeline.music.beat_grid import BeatGrid
 from tripcut_pipeline.render.apply_transition import apply_transition
 from tripcut_pipeline.render.audio_mix import AudioMix
 from tripcut_pipeline.render.extend_for_fades import extend_for_fades
+from tripcut_pipeline.render.hold_last_shot import hold_last_shot
 from tripcut_pipeline.render.merge_same_clip_neighbours import merge_same_clip_neighbours
 from tripcut_pipeline.render.normalize_reel_loudness import normalize_reel_loudness
 from tripcut_pipeline.render.render_reel import render_reel
+from tripcut_pipeline.render.resolve_edge_fades import resolve_edge_fades
 from tripcut_pipeline.render.smooth_face_track import smooth_face_track
 from tripcut_pipeline.render.snap_to_beats import snap_to_beats
 from tripcut_pipeline.score.face_box import FaceBox
@@ -24,12 +26,14 @@ def render_trip(
     audio_mix: AudioMix,
     transition: str,
     loudness_target: float | None,
+    intro_outro: str,
     work_dir: Path,
     out_dir: Path,
 ) -> list[dict]:
     """Stage 5: join touching shots from one clip into one shot, set the joins (--transition), snap cuts to
     the beats of each version's own track, give crossfades their overlap, render cinematic.mp4 / fast.mp4 / story.mp4, then set each reel to
-    loudness_target LUFS (None = --loudness off, keep the raw mix).
+    loudness_target LUFS (None = --loudness off, keep the raw mix). With --intro-outro auto the last shot is held
+    longer and each reel fades in from black and out to black with its sound.
 
     Returns the edit lists as rendered.
     """
@@ -47,10 +51,19 @@ def render_trip(
         merged = dict(edit_list)
         merged["shots"] = merge_same_clip_neighbours(edit_list["shots"])
         with_transitions = apply_transition(merged, transition)
-        snapped["shots"] = extend_for_fades(snap_to_beats(with_transitions, beat_times, clips), clips)
+        edges = resolve_edge_fades(edit_list["version"], intro_outro)
+        clip_durations = {clip_id: clip.duration_s for clip_id, clip in clips.items()}
+        held = hold_last_shot(snap_to_beats(with_transitions, beat_times, clips), clip_durations, edges.last_shot_s)
+        snapped["shots"] = extend_for_fades(held, clips)
+        snapped["intro_outro"] = {
+            "video_in_s": edges.video_in_s,
+            "audio_in_s": edges.audio_in_s,
+            "video_out_s": edges.video_out_s,
+            "last_shot_s": edges.last_shot_s,
+        }
         out_path = out_dir / f"{edit_list['version']}.mp4"
         try:
-            length = render_reel(snapped, clips, face_tracks, music_path, audio_mix, work_dir, out_path)
+            length = render_reel(snapped, clips, face_tracks, music_path, audio_mix, edges, work_dir, out_path)
             if loudness_target is not None:
                 snapped["loudness"] = normalize_reel_loudness(out_path, loudness_target, work_dir)
         except CommandError as error:
