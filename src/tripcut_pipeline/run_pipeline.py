@@ -14,6 +14,8 @@ from tripcut_pipeline.music.load_beat_grid import load_beat_grid
 from tripcut_pipeline.music.resolve_music_tracks import resolve_music_tracks
 from tripcut_pipeline.pipeline_options import PipelineOptions
 from tripcut_pipeline.render.audio_mix import AudioMix
+from tripcut_pipeline.render.count_same_clip_joins import count_same_clip_joins
+from tripcut_pipeline.render.measure_repeated_footage import measure_repeated_footage
 from tripcut_pipeline.render.render_trip import render_trip
 from tripcut_pipeline.score.score_trip import score_trip
 from tripcut_pipeline.tools.write_json import write_json
@@ -103,7 +105,11 @@ def run_pipeline(options: PipelineOptions) -> int:
             )
             transitions = {}
             loudness = {}
+            repeated_footage = {}
+            same_clip_joins = {}
             for edit_list in rendered:
+                repeated_footage[edit_list["version"]] = measure_repeated_footage(edit_list["shots"])
+                same_clip_joins[edit_list["version"]] = count_same_clip_joins(edit_list["shots"])
                 write_json(options.out_dir / "edit_lists" / f"{edit_list['version']}.json", edit_list)
                 if "loudness" in edit_list:
                     loudness[edit_list["version"]] = edit_list["loudness"]
@@ -116,6 +122,8 @@ def run_pipeline(options: PipelineOptions) -> int:
             stage.extra["transitions"] = transitions
             stage.extra["loudness_target"] = options.loudness_target
             stage.extra["loudness"] = loudness
+            stage.extra["repeated_footage_s"] = repeated_footage
+            stage.extra["same_clip_joins"] = same_clip_joins
     except BadInputError as error:
         log.error("bad input: %s", error)
         metrics["error"] = str(error)
