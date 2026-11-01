@@ -8,6 +8,7 @@ from tripcut_pipeline.music.beat_grid import BeatGrid
 from tripcut_pipeline.render.apply_transition import apply_transition
 from tripcut_pipeline.render.audio_mix import AudioMix
 from tripcut_pipeline.render.extend_for_fades import extend_for_fades
+from tripcut_pipeline.render.merge_same_clip_neighbours import merge_same_clip_neighbours
 from tripcut_pipeline.render.normalize_reel_loudness import normalize_reel_loudness
 from tripcut_pipeline.render.render_reel import render_reel
 from tripcut_pipeline.render.smooth_face_track import smooth_face_track
@@ -26,8 +27,8 @@ def render_trip(
     work_dir: Path,
     out_dir: Path,
 ) -> list[dict]:
-    """Stage 5: set the joins (--transition), snap cuts to the beats of each version's own track,
-    give crossfades their overlap, render cinematic.mp4 / fast.mp4 / story.mp4, then set each reel to
+    """Stage 5: join touching shots from one clip into one shot, set the joins (--transition), snap cuts to
+    the beats of each version's own track, give crossfades their overlap, render cinematic.mp4 / fast.mp4 / story.mp4, then set each reel to
     loudness_target LUFS (None = --loudness off, keep the raw mix).
 
     Returns the edit lists as rendered.
@@ -43,7 +44,9 @@ def render_trip(
             beat_times = beat_grid.beat_times
             music_path = beat_grid.path
         snapped = dict(edit_list)
-        with_transitions = apply_transition(edit_list, transition)
+        merged = dict(edit_list)
+        merged["shots"] = merge_same_clip_neighbours(edit_list["shots"])
+        with_transitions = apply_transition(merged, transition)
         snapped["shots"] = extend_for_fades(snap_to_beats(with_transitions, beat_times, clips), clips)
         out_path = out_dir / f"{edit_list['version']}.mp4"
         try:
