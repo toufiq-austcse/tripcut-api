@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from tripcut_pipeline.config.director_constants import DEFAULT_DIRECTOR, DEFAULT_MODEL, DIRECTOR_NAMES
+from tripcut_pipeline.config.transition_constants import DEFAULT_TRANSITION, TRANSITION_MODES
 from tripcut_pipeline.config.music_constants import DEFAULT_CLIP_VOLUME, DEFAULT_MUSIC_VOLUME, MUSIC_LIBRARY
 from tripcut_pipeline.errors.bad_input_error import BadInputError
 from tripcut_pipeline.pipeline_options import PipelineOptions
@@ -13,7 +14,8 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
     """Apply env defaults: flag > env var > built-in default.
 
     --director > TRIPCUT_DIRECTOR > haiku; TRIPCUT_MODEL > claude-haiku-5-5; --music > TRIPCUT_MUSIC > library;
-    --clip-volume > TRIPCUT_CLIP_VOLUME > 0.25; --music-volume > TRIPCUT_MUSIC_VOLUME > 1.0.
+    --clip-volume > TRIPCUT_CLIP_VOLUME > 0.25; --music-volume > TRIPCUT_MUSIC_VOLUME > 1.0;
+    --transition > TRIPCUT_TRANSITION > auto.
     """
     director = args.director
     if director is None:
@@ -39,6 +41,14 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
     clip_volume = resolve_volume(args.clip_volume, "--clip-volume", "TRIPCUT_CLIP_VOLUME", DEFAULT_CLIP_VOLUME)
     music_volume = resolve_volume(args.music_volume, "--music-volume", "TRIPCUT_MUSIC_VOLUME", DEFAULT_MUSIC_VOLUME)
 
+    transition = args.transition
+    if transition is None:
+        transition = os.environ.get("TRIPCUT_TRANSITION")
+    if transition is None or transition == "":
+        transition = DEFAULT_TRANSITION
+    if transition not in TRANSITION_MODES:
+        raise BadInputError(f"TRIPCUT_TRANSITION must be one of {TRANSITION_MODES}, got {transition!r}")
+
     return PipelineOptions(
         trip_dir=Path(args.trip_dir).expanduser().resolve(),
         out_dir=Path(args.out).expanduser().resolve(),
@@ -46,6 +56,7 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
         version_music=version_music,
         clip_volume=clip_volume,
         music_volume=music_volume,
+        transition=transition,
         director=director,
         model=model,
         duration_s=args.duration,

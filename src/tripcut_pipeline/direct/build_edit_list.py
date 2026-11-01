@@ -1,4 +1,5 @@
 from tripcut_pipeline.config.director_constants import VERSION_SHOT_SECONDS
+from tripcut_pipeline.config.transition_constants import VERSION_TRANSITION_SECONDS, VERSION_TRANSITIONS
 from tripcut_pipeline.score.segment import Segment
 
 
@@ -37,7 +38,8 @@ def build_edit_list(
                 "out": round(start + length, 3),
                 "crop": crop,
                 "text": None,
-                "transition": "cut",
+                "transition": VERSION_TRANSITIONS[version],
+                "transition_s": VERSION_TRANSITION_SECONDS[version],
             }
         )
         total += length

@@ -2,6 +2,7 @@ import argparse
 
 from tripcut_pipeline.config.director_constants import DIRECTOR_NAMES
 from tripcut_pipeline.config.render_constants import DEFAULT_DURATION_S
+from tripcut_pipeline.config.transition_constants import TRANSITION_MODES
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -21,6 +22,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="clip sound under the music, 0..1 (default $TRIPCUT_CLIP_VOLUME, else 0.25)")
     parser.add_argument("--music-volume", type=float, default=None,
                         help="music level, 0..1 (default $TRIPCUT_MUSIC_VOLUME, else 1.0)")
+    parser.add_argument("--transition", default=None, choices=TRANSITION_MODES,
+                        help="auto = crossfade for cinematic/story, cut for fast (default, or $TRIPCUT_TRANSITION); "
+                             "cut = plain cuts in all 3; fade = crossfades in all 3")
     parser.add_argument("--director", default=None, choices=DIRECTOR_NAMES,
                         help="default: $TRIPCUT_DIRECTOR, else haiku")
     parser.add_argument("--duration", type=int, default=DEFAULT_DURATION_S, help="reel length in seconds")

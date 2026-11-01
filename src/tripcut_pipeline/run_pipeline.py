@@ -2,6 +2,7 @@ import logging
 import shutil
 
 from tripcut_pipeline.config.exit_codes_constants import EXIT_BAD_INPUT, EXIT_OK, EXIT_RENDER_FAILED
+from tripcut_pipeline.config.transition_constants import TRANSITION_CUT, TRANSITION_FADE
 from tripcut_pipeline.direct.direct_trip import direct_trip
 from tripcut_pipeline.direct.director_request import DirectorRequest
 from tripcut_pipeline.errors.bad_input_error import BadInputError
@@ -87,11 +88,25 @@ def run_pipeline(options: PipelineOptions) -> int:
 
         with timer.stage("render") as stage:
             rendered = render_trip(
-                result.edit_lists, clips, scored.face_tracks, beat_grids, audio_mix, work_dir, options.out_dir
+                result.edit_lists,
+                clips,
+                scored.face_tracks,
+                beat_grids,
+                audio_mix,
+                options.transition,
+                work_dir,
+                options.out_dir,
             )
+            transitions = {}
             for edit_list in rendered:
                 write_json(options.out_dir / "edit_lists" / f"{edit_list['version']}.json", edit_list)
+                fades = [shot for shot in edit_list["shots"] if shot["transition"] == TRANSITION_FADE]
+                transitions[edit_list["version"]] = TRANSITION_CUT
+                if len(fades) > 0:
+                    transitions[edit_list["version"]] = TRANSITION_FADE
             stage.extra["reels"] = len(rendered)
+            stage.extra["transition_mode"] = options.transition
+            stage.extra["transitions"] = transitions
     except BadInputError as error:
         log.error("bad input: %s", error)
         metrics["error"] = str(error)

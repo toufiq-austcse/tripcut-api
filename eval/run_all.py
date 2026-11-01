@@ -2,6 +2,7 @@
 
 Usage (from the repo root): uv run python eval/run_all.py [--director haiku|fallback] [--music library|none|PATH]
     [--music-cinematic PATH] [--music-fast PATH] [--music-story PATH] [--clip-volume 0..1] [--music-volume 0..1]
+    [--transition auto|cut|fade]
 """
 
 import argparse
@@ -25,6 +26,7 @@ def main() -> None:
     parser.add_argument("--music-story", default=None, metavar="PATH")
     parser.add_argument("--clip-volume", default=None, metavar="0..1")
     parser.add_argument("--music-volume", default=None, metavar="0..1")
+    parser.add_argument("--transition", default=None, choices=("auto", "cut", "fade"))
     parser.add_argument("--skip-done", action="store_true", help="skip trips that already have metrics.json")
     args = parser.parse_args()
 
@@ -46,6 +48,7 @@ def main() -> None:
             ("--music-story", args.music_story),
             ("--clip-volume", args.clip_volume),
             ("--music-volume", args.music_volume),
+            ("--transition", args.transition),
         ]
         for flag, value in pass_through:
             if value is not None:

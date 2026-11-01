@@ -12,6 +12,7 @@ class PipelineOptions:
     version_music: dict[str, str | None]
     clip_volume: float
     music_volume: float
+    transition: str
     director: str
     model: str
     duration_s: int
