@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 import anthropic
 
@@ -19,6 +20,11 @@ class ClaudeHaikuDirectorService:
 
     def __init__(self, model: str) -> None:
         self._model = model
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if api_key is None:
+            raise DirectorError("ANTHROPIC_API_KEY is not set")
+        if api_key.strip() == "":
+            raise DirectorError("ANTHROPIC_API_KEY is empty")
         try:
             self._client = anthropic.Anthropic()
         except anthropic.AnthropicError as error:
