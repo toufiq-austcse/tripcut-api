@@ -30,8 +30,34 @@ uv run tripcut ./eval/trips/lisbon --out ./out/lisbon
 | `out/lisbon/edit_lists/<version>.director.json` | edit list as the director returned it |
 | `out/lisbon/metrics.json` | per stage: wall_s, core_s, peak_rss_mb (+ tokens for `direct`) |
 
-Options: `--music PATH|none`, `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`.
+Options: `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`, plus the music options below.
 Env: `TRIPCUT_DIRECTOR` (default `haiku`), `TRIPCUT_MODEL` (default `claude-haiku-5-5`).
+
+### Music (the user's choice)
+
+For each reel, the first rule that matches wins:
+
+| Flag | Result |
+|------|--------|
+| `--music-cinematic PATH`, `--music-fast PATH`, `--music-story PATH` | your track for that reel only |
+| `--music none` | no music, clip sound only (at full level) |
+| `--music PATH` | your track for all 3 reels |
+| `--music library` (default) | bundled CC0 track for the reel's mood: calm / upbeat / warm (`assets/music/`) |
+| `--clip-volume 0..1` | clip sound under the music, default `0.25`; `0` = music only |
+| `--music-volume 0..1` | music level, default `1.0` |
+
+Env fallbacks when a flag is not given: `TRIPCUT_MUSIC`, `TRIPCUT_CLIP_VOLUME`, `TRIPCUT_MUSIC_VOLUME`.
+Cuts snap to the beats of each reel's own track. `metrics.json` → `stages.music.tracks` records the track,
+its source (`library` / `user` / `none`) and tempo per reel.
+
+```bash
+uv run tripcut ./eval/trips/lisbon --out ./out/a                                   # bundled tracks, clips at 25 %
+uv run tripcut ./eval/trips/lisbon --music ~/Music/song.mp3 --out ./out/c1          # one track for all 3
+uv run tripcut ./eval/trips/lisbon --music-fast ~/Music/edm.mp3 --out ./out/c2      # only fast.mp4 changes
+uv run tripcut ./eval/trips/lisbon --clip-volume 0 --out ./out/music-only           # no clip sound
+uv run tripcut ./eval/trips/lisbon --music none --out ./out/clips-only              # no music
+```
+Only commit tracks that are CC0 / public domain (see `assets/music/LICENSE.md`); your own songs stay outside git.
 If the Claude call fails or returns an invalid answer twice, the CLI uses the no-LLM fallback and sets
 `stages.direct.fallback = true` with the reason.
 

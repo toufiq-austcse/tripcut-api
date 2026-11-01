@@ -8,7 +8,10 @@ class PipelineOptions:
 
     trip_dir: Path
     out_dir: Path
-    music: str | None
+    music: str
+    version_music: dict[str, str | None]
+    clip_volume: float
+    music_volume: float
     director: str
     model: str
     duration_s: int

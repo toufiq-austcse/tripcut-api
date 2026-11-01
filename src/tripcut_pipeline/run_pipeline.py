@@ -10,8 +10,9 @@ from tripcut_pipeline.ingest.ingest_trip import ingest_trip
 from tripcut_pipeline.metrics.describe_machine import describe_machine
 from tripcut_pipeline.metrics.stage_timer_service import StageTimerService
 from tripcut_pipeline.music.load_beat_grid import load_beat_grid
-from tripcut_pipeline.music.resolve_music_track import resolve_music_track
+from tripcut_pipeline.music.resolve_music_tracks import resolve_music_tracks
 from tripcut_pipeline.pipeline_options import PipelineOptions
+from tripcut_pipeline.render.audio_mix import AudioMix
 from tripcut_pipeline.render.render_trip import render_trip
 from tripcut_pipeline.score.score_trip import score_trip
 from tripcut_pipeline.tools.write_json import write_json
@@ -26,6 +27,8 @@ def run_pipeline(options: PipelineOptions) -> int:
     metrics: dict = {"trip": options.trip_dir.name, "machine": describe_machine(), "director": options.director}
     exit_code = EXIT_OK
     try:
+        choices = resolve_music_tracks(options.music, options.version_music)
+
         with timer.stage("ingest") as stage:
             proxies = ingest_trip(options.trip_dir, work_dir / "proxies")
             clips = {proxy.meta.clip_id: proxy.meta for proxy in proxies}
@@ -44,20 +47,30 @@ def run_pipeline(options: PipelineOptions) -> int:
             stage.extra["kept"] = len(scored.kept)
 
         with timer.stage("music") as stage:
-            track = resolve_music_track(options.music)
-            beat_grid = None
-            music_id = None
-            if track is not None:
-                beat_grid = load_beat_grid(track)
-                music_id = beat_grid.music_id
-                stage.extra["music_id"] = music_id
-                stage.extra["tempo_bpm"] = beat_grid.tempo_bpm
+            audio_mix = AudioMix(clip_volume=options.clip_volume, music_volume=options.music_volume)
+            beat_grids = {}
+            music_ids = {}
+            tracks = {}
+            for version, choice in choices.items():
+                beat_grid = None
+                music_id = None
+                tempo_bpm = None
+                if choice.path is not None:
+                    beat_grid = load_beat_grid(choice.path)
+                    music_id = beat_grid.music_id
+                    tempo_bpm = beat_grid.tempo_bpm
+                beat_grids[version] = beat_grid
+                music_ids[version] = music_id
+                tracks[version] = {"music_id": music_id, "source": choice.source, "tempo_bpm": tempo_bpm}
+            stage.extra["tracks"] = tracks
+            stage.extra["clip_volume"] = audio_mix.clip_volume
+            stage.extra["music_volume"] = audio_mix.music_volume
 
         with timer.stage("direct") as stage:
             request = DirectorRequest(
                 trip_name=options.trip_dir.name,
                 duration_s=options.duration_s,
-                music_id=music_id,
+                music_ids=music_ids,
                 segments=scored.kept,
                 clips=clips,
             )
@@ -74,7 +87,7 @@ def run_pipeline(options: PipelineOptions) -> int:
 
         with timer.stage("render") as stage:
             rendered = render_trip(
-                result.edit_lists, clips, scored.face_tracks, beat_grid, work_dir, options.out_dir
+                result.edit_lists, clips, scored.face_tracks, beat_grids, audio_mix, work_dir, options.out_dir
             )
             for edit_list in rendered:
                 write_json(options.out_dir / "edit_lists" / f"{edit_list['version']}.json", edit_list)
