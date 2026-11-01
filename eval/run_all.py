@@ -1,6 +1,7 @@
 """Run the tripcut CLI on every trip in eval/trips/ and write out/summary.md + eval/trips.csv.
 
-Usage (from the repo root): uv run python eval/run_all.py [--director haiku|fallback] [--music PATH|none]
+Usage (from the repo root): uv run python eval/run_all.py [--director haiku|fallback] [--music library|none|PATH]
+    [--music-cinematic PATH] [--music-fast PATH] [--music-story PATH] [--clip-volume 0..1] [--music-volume 0..1]
 """
 
 import argparse
@@ -18,7 +19,12 @@ def main() -> None:
     parser.add_argument("--trips", default="eval/trips", help="folder with one sub-folder per trip")
     parser.add_argument("--out", default="out", help="output root")
     parser.add_argument("--director", default=None, choices=("haiku", "fallback"))
-    parser.add_argument("--music", default=None)
+    parser.add_argument("--music", default=None, metavar="library|none|PATH")
+    parser.add_argument("--music-cinematic", default=None, metavar="PATH")
+    parser.add_argument("--music-fast", default=None, metavar="PATH")
+    parser.add_argument("--music-story", default=None, metavar="PATH")
+    parser.add_argument("--clip-volume", default=None, metavar="0..1")
+    parser.add_argument("--music-volume", default=None, metavar="0..1")
     parser.add_argument("--skip-done", action="store_true", help="skip trips that already have metrics.json")
     args = parser.parse_args()
 
@@ -33,8 +39,17 @@ def main() -> None:
         command = [sys.executable, "-m", "tripcut_pipeline", str(trip_dir), "--out", str(trip_out)]
         if args.director is not None:
             command += ["--director", args.director]
-        if args.music is not None:
-            command += ["--music", args.music]
+        pass_through = [
+            ("--music", args.music),
+            ("--music-cinematic", args.music_cinematic),
+            ("--music-fast", args.music_fast),
+            ("--music-story", args.music_story),
+            ("--clip-volume", args.clip_volume),
+            ("--music-volume", args.music_volume),
+        ]
+        for flag, value in pass_through:
+            if value is not None:
+                command += [flag, value]
         print(f"== {trip_dir.name}", flush=True)
         completed = subprocess.run(command, check=False)
         if completed.returncode != 0:

@@ -11,8 +11,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("trip_dir", metavar="TRIP_DIR", help="folder with the trip's .mov/.mp4 clips")
     parser.add_argument("--out", required=True, metavar="OUT_DIR", help="where reels, edit lists and metrics go")
-    parser.add_argument("--music", default=None, metavar="PATH|none",
-                        help="music file, or 'none'; default: first track in assets/music")
+    parser.add_argument("--music", default=None, metavar="library|none|PATH",
+                        help="library = bundled CC0 track per version (default, or $TRIPCUT_MUSIC), "
+                             "none = clip sound only, PATH = one file for all 3 reels")
+    parser.add_argument("--music-cinematic", default=None, metavar="PATH", help="track for cinematic.mp4 only")
+    parser.add_argument("--music-fast", default=None, metavar="PATH", help="track for fast.mp4 only")
+    parser.add_argument("--music-story", default=None, metavar="PATH", help="track for story.mp4 only")
+    parser.add_argument("--clip-volume", type=float, default=None,
+                        help="clip sound under the music, 0..1 (default $TRIPCUT_CLIP_VOLUME, else 0.25)")
+    parser.add_argument("--music-volume", type=float, default=None,
+                        help="music level, 0..1 (default $TRIPCUT_MUSIC_VOLUME, else 1.0)")
     parser.add_argument("--director", default=None, choices=DIRECTOR_NAMES,
                         help="default: $TRIPCUT_DIRECTOR, else haiku")
     parser.add_argument("--duration", type=int, default=DEFAULT_DURATION_S, help="reel length in seconds")

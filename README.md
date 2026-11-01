@@ -30,12 +30,12 @@ src/tripcut_pipeline/   SAN-48 CLI (optional extra `pipeline`; not used by the A
   ingest/        ffprobe + one ffmpeg pass -> 360p proxy, 2 fps frames, 16 kHz wav
   score/         PySceneDetect shots, OpenCV blur/exposure/shake, SigLIP, MediaPipe faces + YAMNet
   direct/        Director protocol, ClaudeHaikuDirectorService, FallbackDirectorService
-  music/         music track + librosa beat grid (cached)
-  render/        beat snap, face-follow 9:16 crop, ffmpeg render + concat
+  music/         per-reel track choice (library / user / none) + librosa beat grid (cached)
+  render/        beat snap, face-follow 9:16 crop, ffmpeg render + concat, music/clip-sound mix
   metrics/       StageTimerService (wall, core-seconds, peak RSS)
   evaluation/    summary table, trips.csv, blind rating sheet
 eval/            run_all.py, make_rating_sheet.py, trips.csv, rating_sheet.csv
-assets/music/    CC0 tracks + LICENSE.md
+assets/music/    3 CC0 tracks (one per reel mood) + LICENSE.md
 infra/modal/     Modal app, image and ASGI entry point
 infra/r2/        bucket CORS and lifecycle rules
 supabase/        CLI config, migration, rollback

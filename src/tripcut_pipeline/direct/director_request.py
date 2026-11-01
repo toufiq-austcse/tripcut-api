@@ -10,6 +10,6 @@ class DirectorRequest:
 
     trip_name: str
     duration_s: int
-    music_id: str | None
+    music_ids: dict[str, str | None]
     segments: list[Segment]
     clips: dict[str, ClipMeta]
