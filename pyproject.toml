@@ -21,6 +21,7 @@ pipeline = [
     "scenedetect>=0.6.4",
     "opencv-python-headless>=4.10",
     "open_clip_torch>=2.29",
+    "transformers>=4.45",
     "torch>=2.5",
     "pillow>=10.4",
     "mediapipe>=0.10.18",
