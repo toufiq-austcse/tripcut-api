@@ -5,7 +5,9 @@ from tripcut_pipeline.errors.command_error import CommandError
 from tripcut_pipeline.errors.render_error import RenderError
 from tripcut_pipeline.ingest.clip_meta import ClipMeta
 from tripcut_pipeline.music.beat_grid import BeatGrid
+from tripcut_pipeline.render.apply_transition import apply_transition
 from tripcut_pipeline.render.audio_mix import AudioMix
+from tripcut_pipeline.render.extend_for_fades import extend_for_fades
 from tripcut_pipeline.render.render_reel import render_reel
 from tripcut_pipeline.render.smooth_face_track import smooth_face_track
 from tripcut_pipeline.render.snap_to_beats import snap_to_beats
@@ -18,12 +20,14 @@ def render_trip(
     face_boxes: dict[str, list[FaceBox]],
     beat_grids: dict[str, BeatGrid | None],
     audio_mix: AudioMix,
+    transition: str,
     work_dir: Path,
     out_dir: Path,
 ) -> list[dict]:
-    """Stage 5: snap cuts to the beats of each version's own track, render cinematic.mp4 / fast.mp4 / story.mp4.
+    """Stage 5: set the joins (--transition), snap cuts to the beats of each version's own track,
+    give crossfades their overlap, render cinematic.mp4 / fast.mp4 / story.mp4.
 
-    Returns the snapped edit lists.
+    Returns the edit lists as rendered.
     """
     log = logging.getLogger(__name__)
     face_tracks = {clip_id: smooth_face_track(boxes) for clip_id, boxes in face_boxes.items()}
@@ -36,7 +40,8 @@ def render_trip(
             beat_times = beat_grid.beat_times
             music_path = beat_grid.path
         snapped = dict(edit_list)
-        snapped["shots"] = snap_to_beats(edit_list["shots"], beat_times, clips)
+        with_transitions = apply_transition(edit_list, transition)
+        snapped["shots"] = extend_for_fades(snap_to_beats(with_transitions, beat_times, clips), clips)
         out_path = out_dir / f"{edit_list['version']}.mp4"
         try:
             length = render_reel(snapped, clips, face_tracks, music_path, audio_mix, work_dir, out_path)

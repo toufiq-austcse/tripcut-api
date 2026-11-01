@@ -16,6 +16,7 @@ Rules:
 - Use only segment ids from the list. Never repeat a segment within one version.
 - Prefer sharp, steady, well exposed segments. Skip segments that look accidental (floor, pocket, blur).
 - Do not put near-identical segments next to each other.
+- In cinematic and fast, do not put two segments from the same clip next to each other.
 - crop: "face" when people are the subject of the segment, otherwise "center".
 - Use about the number of shots asked for each version.
 - title: a short reel title such as "Lisbon, 3 days" (no emoji, no hashtags).

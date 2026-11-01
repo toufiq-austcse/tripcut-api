@@ -1,11 +1,15 @@
-from tripcut_pipeline.config.director_constants import VERSION_SHOT_COUNTS, VERSIONS
+from tripcut_pipeline.config.director_constants import SEPARATE_CLIP_VERSIONS, VERSION_SHOT_COUNTS, VERSIONS
 from tripcut_pipeline.direct.build_edit_lists import build_edit_lists
 from tripcut_pipeline.direct.director_request import DirectorRequest
 from tripcut_pipeline.direct.director_result import DirectorResult
+from tripcut_pipeline.direct.separate_same_clip_neighbours import separate_same_clip_neighbours
 
 
 class FallbackDirectorService:
-    """No-LLM director (TDD-001 §8.3 fallback): top-scored segments per version, in filming order."""
+    """No-LLM director (TDD-001 §8.3 fallback): top-scored segments per version, in filming order.
+
+    cinematic and fast then move shots so two segments from the same clip are not next to each other.
+    """
 
     def direct(self, request: DirectorRequest) -> DirectorResult:
         by_score = sorted(request.segments, key=lambda segment: segment.score, reverse=True)
@@ -13,6 +17,8 @@ class FallbackDirectorService:
         for version in VERSIONS:
             chosen = by_score[:VERSION_SHOT_COUNTS[version]]
             chosen = sorted(chosen, key=lambda segment: segment.segment_id)
+            if version in SEPARATE_CLIP_VERSIONS:
+                chosen = separate_same_clip_neighbours(chosen)
             shots = []
             for segment in chosen:
                 crop = "center"

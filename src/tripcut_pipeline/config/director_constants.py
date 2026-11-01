@@ -3,6 +3,7 @@
 VERSIONS = ("cinematic", "fast", "story")
 VERSION_SHOT_COUNTS = {"cinematic": 9, "fast": 22, "story": 12}
 VERSION_SHOT_SECONDS = {"cinematic": 3.4, "fast": 1.3, "story": 2.5}
+SEPARATE_CLIP_VERSIONS = ("cinematic", "fast")
 DEFAULT_DIRECTOR = "haiku"
 DIRECTOR_NAMES = ("haiku", "fallback")
 DEFAULT_MODEL = "claude-haiku-5-5"

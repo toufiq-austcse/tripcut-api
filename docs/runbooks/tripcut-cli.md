@@ -30,7 +30,7 @@ uv run tripcut ./eval/trips/lisbon --out ./out/lisbon
 | `out/lisbon/edit_lists/<version>.director.json` | edit list as the director returned it |
 | `out/lisbon/metrics.json` | per stage: wall_s, core_s, peak_rss_mb (+ tokens for `direct`) |
 
-Options: `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`, plus the music options below.
+Options: `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`, plus the music and transition options below.
 Env: `TRIPCUT_DIRECTOR` (default `haiku`), `TRIPCUT_MODEL` (default `claude-haiku-5-5`).
 
 ### Music (the user's choice)
@@ -58,6 +58,24 @@ uv run tripcut ./eval/trips/lisbon --clip-volume 0 --out ./out/music-only       
 uv run tripcut ./eval/trips/lisbon --music none --out ./out/clips-only              # no music
 ```
 Only commit tracks that are CC0 / public domain (see `assets/music/LICENSE.md`); your own songs stay outside git.
+### Transitions between shots
+
+| Flag | cinematic | story | fast |
+|------|-----------|-------|------|
+| `--transition auto` (default) | 0.4 s crossfade | 0.3 s crossfade | cut |
+| `--transition cut` | cut | cut | cut |
+| `--transition fade` | 0.4 s crossfade | 0.3 s crossfade | 0.3 s crossfade |
+
+Env fallback: `TRIPCUT_TRANSITION`. A crossfade ends on the shot's beat (the incoming shot starts a little
+earlier in its clip). If the clip has no room for it, the fade gets shorter, or becomes a cut below 0.1 s.
+Each shot is cut to an exact number of frames, so no join holds a frame. Crossfades encode the reel video
+once more (more render CPU); a reel with only cuts is joined without a second encode.
+`metrics.json` → `stages.render.transitions` records cut / fade per reel.
+
+```bash
+uv run tripcut ./eval/trips/lisbon --transition cut --out ./out/cuts                # plain cuts in all 3
+```
+
 If the Claude call fails or returns an invalid answer twice, the CLI uses the no-LLM fallback and sets
 `stages.direct.fallback = true` with the reason.
 
