@@ -1,0 +1,16 @@
+# Supabase CLI project config for tripcut-api (migrations live in supabase/migrations).
+project_id = "tripcut-api"
+
+[api]
+schemas = ["public"]
+
+[db]
+major_version = 17
+
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true

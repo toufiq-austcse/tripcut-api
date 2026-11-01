@@ -1,0 +1,1309 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TripCut API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/me": {
+      "get": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Get Me",
+        "description": "GET /v1/me: the signed-in user and the upload limits the client must follow.",
+        "operationId": "get_me_v1_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/trips": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Create Trip",
+        "description": "POST /v1/trips",
+        "operationId": "create_trip_v1_trips_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTripRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "List Trips",
+        "description": "GET /v1/trips: newest first, keyset paging on (created_at, id).",
+        "operationId": "list_trips_v1_trips_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripPageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Get Trip",
+        "description": "GET /v1/trips/{trip_id}: the trip, its clips and its latest job.",
+        "operationId": "get_trip_v1_trips__trip_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Update Trip",
+        "description": "PATCH /v1/trips/{trip_id}",
+        "operationId": "update_trip_v1_trips__trip_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTripRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Delete Trip",
+        "description": "DELETE /v1/trips/{trip_id}",
+        "operationId": "delete_trip_v1_trips__trip_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/submit": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Submit Trip",
+        "description": "POST /v1/trips/{trip_id}/submit: close uploads and queue the analyze job (202).",
+        "operationId": "submit_trip_v1_trips__trip_id__submit_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/clips": {
+      "post": {
+        "tags": [
+          "clips"
+        ],
+        "summary": "Create Clip",
+        "description": "POST /v1/trips/{trip_id}/clips: 201 new clip, or 200 when the fingerprint is known (resume).",
+        "operationId": "create_clip_v1_trips__trip_id__clips_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClipRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClipResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Clip already registered (resume)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClipResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/clips/{clip_id}/parts:sign": {
+      "post": {
+        "tags": [
+          "clips"
+        ],
+        "summary": "Sign Clip Parts",
+        "description": "POST /v1/clips/{clip_id}/parts:sign: presigned PUT URLs, valid for 1 hour.",
+        "operationId": "sign_clip_parts_v1_clips__clip_id__parts_sign_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "clip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Clip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignPartsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignPartsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/clips/{clip_id}/parts": {
+      "get": {
+        "tags": [
+          "clips"
+        ],
+        "summary": "List Clip Parts",
+        "description": "GET /v1/clips/{clip_id}/parts: the parts already in R2 (resume after a reload).",
+        "operationId": "list_clip_parts_v1_clips__clip_id__parts_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "clip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Clip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPartsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/clips/{clip_id}/complete": {
+      "post": {
+        "tags": [
+          "clips"
+        ],
+        "summary": "Complete Clip",
+        "description": "POST /v1/clips/{clip_id}/complete: empty body; the server lists the parts itself.",
+        "operationId": "complete_clip_v1_clips__clip_id__complete_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "clip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Clip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClipResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/clips/{clip_id}": {
+      "delete": {
+        "tags": [
+          "clips"
+        ],
+        "summary": "Abort Clip",
+        "description": "DELETE /v1/clips/{clip_id}: abort the upload (or delete the object) and remove the clip.",
+        "operationId": "abort_clip_v1_clips__clip_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "clip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Clip Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClipResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "trip_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Trip Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "fingerprint": {
+            "type": "string",
+            "title": "Fingerprint"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "uploading",
+              "uploaded"
+            ],
+            "title": "Status"
+          },
+          "part_size_bytes": {
+            "type": "integer",
+            "title": "Part Size Bytes"
+          },
+          "part_count": {
+            "type": "integer",
+            "title": "Part Count"
+          },
+          "uploaded_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploaded At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "trip_id",
+          "filename",
+          "content_type",
+          "size_bytes",
+          "fingerprint",
+          "status",
+          "part_size_bytes",
+          "part_count",
+          "uploaded_at",
+          "created_at"
+        ],
+        "title": "ClipResponse"
+      },
+      "CreateClipRequest": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename"
+          },
+          "content_type": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Size Bytes"
+          },
+          "fingerprint": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Fingerprint"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "filename",
+          "content_type",
+          "size_bytes",
+          "fingerprint"
+        ],
+        "title": "CreateClipRequest"
+      },
+      "CreateTripRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "CreateTripRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "JobResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "analyze",
+              "rerender"
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ingest",
+                  "score",
+                  "direct",
+                  "music",
+                  "render",
+                  "notify"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
+          },
+          "attempt": {
+            "type": "integer",
+            "title": "Attempt"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "step",
+          "attempt",
+          "error",
+          "started_at",
+          "finished_at",
+          "created_at"
+        ],
+        "title": "JobResponse"
+      },
+      "LimitsResponse": {
+        "properties": {
+          "max_open_trips": {
+            "type": "integer",
+            "title": "Max Open Trips"
+          },
+          "min_clips": {
+            "type": "integer",
+            "title": "Min Clips"
+          },
+          "max_clips": {
+            "type": "integer",
+            "title": "Max Clips"
+          },
+          "max_trip_bytes": {
+            "type": "integer",
+            "title": "Max Trip Bytes"
+          },
+          "part_size_bytes": {
+            "type": "integer",
+            "title": "Part Size Bytes"
+          },
+          "max_parts_per_sign": {
+            "type": "integer",
+            "title": "Max Parts Per Sign"
+          },
+          "allowed_content_type_prefix": {
+            "type": "string",
+            "title": "Allowed Content Type Prefix"
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_open_trips",
+          "min_clips",
+          "max_clips",
+          "max_trip_bytes",
+          "part_size_bytes",
+          "max_parts_per_sign",
+          "allowed_content_type_prefix"
+        ],
+        "title": "LimitsResponse"
+      },
+      "ListPartsResponse": {
+        "properties": {
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/UploadedPartResponse"
+            },
+            "type": "array",
+            "title": "Parts"
+          },
+          "uploaded_bytes": {
+            "type": "integer",
+            "title": "Uploaded Bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parts",
+          "uploaded_bytes"
+        ],
+        "title": "ListPartsResponse"
+      },
+      "MeResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/LimitsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "limits"
+        ],
+        "title": "MeResponse"
+      },
+      "SignPartsRequest": {
+        "properties": {
+          "part_numbers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Part Numbers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "part_numbers"
+        ],
+        "title": "SignPartsRequest"
+      },
+      "SignPartsResponse": {
+        "properties": {
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/SignedPartResponse"
+            },
+            "type": "array",
+            "title": "Parts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parts"
+        ],
+        "title": "SignPartsResponse"
+      },
+      "SignedPartResponse": {
+        "properties": {
+          "part_number": {
+            "type": "integer",
+            "title": "Part Number"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "part_number",
+          "url",
+          "expires_at"
+        ],
+        "title": "SignedPartResponse"
+      },
+      "TripDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "processing",
+              "ready",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "notify_email": {
+            "type": "boolean",
+            "title": "Notify Email"
+          },
+          "clip_count": {
+            "type": "integer",
+            "title": "Clip Count"
+          },
+          "total_bytes": {
+            "type": "integer",
+            "title": "Total Bytes"
+          },
+          "uploaded_clip_count": {
+            "type": "integer",
+            "title": "Uploaded Clip Count"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "clips": {
+            "items": {
+              "$ref": "#/components/schemas/ClipResponse"
+            },
+            "type": "array",
+            "title": "Clips"
+          },
+          "latest_job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "notify_email",
+          "clip_count",
+          "total_bytes",
+          "uploaded_clip_count",
+          "submitted_at",
+          "created_at",
+          "updated_at",
+          "clips",
+          "latest_job"
+        ],
+        "title": "TripDetailResponse"
+      },
+      "TripPageResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TripResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "TripPageResponse"
+      },
+      "TripResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "processing",
+              "ready",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "notify_email": {
+            "type": "boolean",
+            "title": "Notify Email"
+          },
+          "clip_count": {
+            "type": "integer",
+            "title": "Clip Count"
+          },
+          "total_bytes": {
+            "type": "integer",
+            "title": "Total Bytes"
+          },
+          "uploaded_clip_count": {
+            "type": "integer",
+            "title": "Uploaded Clip Count"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "notify_email",
+          "clip_count",
+          "total_bytes",
+          "uploaded_clip_count",
+          "submitted_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TripResponse"
+      },
+      "UpdateTripRequest": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "notify_email": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify Email"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UpdateTripRequest",
+        "description": "Partial update. A field that is left out (or null) keeps its current value."
+      },
+      "UploadedPartResponse": {
+        "properties": {
+          "part_number": {
+            "type": "integer",
+            "title": "Part Number"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "part_number",
+          "size_bytes"
+        ],
+        "title": "UploadedPartResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "description": "Supabase access token",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
