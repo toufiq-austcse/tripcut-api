@@ -7,6 +7,7 @@ from tripcut_pipeline.config.transition_constants import DEFAULT_TRANSITION, TRA
 from tripcut_pipeline.config.music_constants import DEFAULT_CLIP_VOLUME, DEFAULT_MUSIC_VOLUME, MUSIC_LIBRARY
 from tripcut_pipeline.errors.bad_input_error import BadInputError
 from tripcut_pipeline.pipeline_options import PipelineOptions
+from tripcut_pipeline.resolve_loudness import resolve_loudness
 from tripcut_pipeline.resolve_volume import resolve_volume
 
 
@@ -15,7 +16,7 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
 
     --director > TRIPCUT_DIRECTOR > haiku; TRIPCUT_MODEL > claude-haiku-5-5; --music > TRIPCUT_MUSIC > library;
     --clip-volume > TRIPCUT_CLIP_VOLUME > 0.25; --music-volume > TRIPCUT_MUSIC_VOLUME > 1.0;
-    --transition > TRIPCUT_TRANSITION > auto.
+    --transition > TRIPCUT_TRANSITION > auto; --loudness > TRIPCUT_LOUDNESS > -16 (off = None).
     """
     director = args.director
     if director is None:
@@ -49,6 +50,8 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
     if transition not in TRANSITION_MODES:
         raise BadInputError(f"TRIPCUT_TRANSITION must be one of {TRANSITION_MODES}, got {transition!r}")
 
+    loudness_target = resolve_loudness(args.loudness)
+
     return PipelineOptions(
         trip_dir=Path(args.trip_dir).expanduser().resolve(),
         out_dir=Path(args.out).expanduser().resolve(),
@@ -57,6 +60,7 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
         clip_volume=clip_volume,
         music_volume=music_volume,
         transition=transition,
+        loudness_target=loudness_target,
         director=director,
         model=model,
         duration_s=args.duration,

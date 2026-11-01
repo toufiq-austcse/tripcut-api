@@ -8,6 +8,7 @@ from tripcut_pipeline.music.beat_grid import BeatGrid
 from tripcut_pipeline.render.apply_transition import apply_transition
 from tripcut_pipeline.render.audio_mix import AudioMix
 from tripcut_pipeline.render.extend_for_fades import extend_for_fades
+from tripcut_pipeline.render.normalize_reel_loudness import normalize_reel_loudness
 from tripcut_pipeline.render.render_reel import render_reel
 from tripcut_pipeline.render.smooth_face_track import smooth_face_track
 from tripcut_pipeline.render.snap_to_beats import snap_to_beats
@@ -21,11 +22,13 @@ def render_trip(
     beat_grids: dict[str, BeatGrid | None],
     audio_mix: AudioMix,
     transition: str,
+    loudness_target: float | None,
     work_dir: Path,
     out_dir: Path,
 ) -> list[dict]:
     """Stage 5: set the joins (--transition), snap cuts to the beats of each version's own track,
-    give crossfades their overlap, render cinematic.mp4 / fast.mp4 / story.mp4.
+    give crossfades their overlap, render cinematic.mp4 / fast.mp4 / story.mp4, then set each reel to
+    loudness_target LUFS (None = --loudness off, keep the raw mix).
 
     Returns the edit lists as rendered.
     """
@@ -45,6 +48,8 @@ def render_trip(
         out_path = out_dir / f"{edit_list['version']}.mp4"
         try:
             length = render_reel(snapped, clips, face_tracks, music_path, audio_mix, work_dir, out_path)
+            if loudness_target is not None:
+                snapped["loudness"] = normalize_reel_loudness(out_path, loudness_target, work_dir)
         except CommandError as error:
             raise RenderError(f"{edit_list['version']}: {error}") from error
         snapped["rendered_s"] = round(length, 3)

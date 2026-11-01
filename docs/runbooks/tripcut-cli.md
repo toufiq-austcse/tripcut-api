@@ -30,7 +30,7 @@ uv run tripcut ./eval/trips/lisbon --out ./out/lisbon
 | `out/lisbon/edit_lists/<version>.director.json` | edit list as the director returned it |
 | `out/lisbon/metrics.json` | per stage: wall_s, core_s, peak_rss_mb (+ tokens for `direct`) |
 
-Options: `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`, plus the music and transition options below.
+Options: `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`, plus the music, transition and loudness options below.
 Env: `TRIPCUT_DIRECTOR` (default `haiku`), `TRIPCUT_MODEL` (default `claude-haiku-5-5`).
 
 ### Music (the user's choice)
@@ -75,6 +75,20 @@ once more (more render CPU); a reel with only cuts is joined without a second en
 ```bash
 uv run tripcut ./eval/trips/lisbon --transition cut --out ./out/cuts                # plain cuts in all 3
 ```
+### Loudness
+
+Every reel is set to the same loudness after it is rendered: **-16 LUFS**, peaks at or below -1 dBFS (loudnorm aims at -2 dBFS true peak, leaving room for the AAC encode)
+(two-pass ffmpeg `loudnorm` on the audio only; the video is copied, not encoded again). This works the same
+for library tracks, your own tracks and `--music none`.
+
+| Flag | Result |
+|------|--------|
+| `--loudness -16` (default) | all 3 reels at -16 LUFS |
+| `--loudness -14` | a bit louder (what Instagram / TikTok / YouTube play back at) |
+| `--loudness off` | keep the raw mix (each reel as loud as its music track) |
+
+Env fallback: `TRIPCUT_LOUDNESS`. Allowed range: -30 to -9 LUFS. `metrics.json` → `stages.render.loudness`
+records `before_lufs`, `after_lufs` and `peak_db` per reel.
 
 If the Claude call fails or returns an invalid answer twice, the CLI uses the no-LLM fallback and sets
 `stages.direct.fallback = true` with the reason.

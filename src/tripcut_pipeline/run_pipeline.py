@@ -94,12 +94,16 @@ def run_pipeline(options: PipelineOptions) -> int:
                 beat_grids,
                 audio_mix,
                 options.transition,
+                options.loudness_target,
                 work_dir,
                 options.out_dir,
             )
             transitions = {}
+            loudness = {}
             for edit_list in rendered:
                 write_json(options.out_dir / "edit_lists" / f"{edit_list['version']}.json", edit_list)
+                if "loudness" in edit_list:
+                    loudness[edit_list["version"]] = edit_list["loudness"]
                 fades = [shot for shot in edit_list["shots"] if shot["transition"] == TRANSITION_FADE]
                 transitions[edit_list["version"]] = TRANSITION_CUT
                 if len(fades) > 0:
@@ -107,6 +111,8 @@ def run_pipeline(options: PipelineOptions) -> int:
             stage.extra["reels"] = len(rendered)
             stage.extra["transition_mode"] = options.transition
             stage.extra["transitions"] = transitions
+            stage.extra["loudness_target"] = options.loudness_target
+            stage.extra["loudness"] = loudness
     except BadInputError as error:
         log.error("bad input: %s", error)
         metrics["error"] = str(error)
