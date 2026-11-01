@@ -5,9 +5,10 @@ import os
 import anthropic
 
 from tripcut_pipeline.config.director_constants import DIRECTOR_ATTEMPTS, DIRECTOR_EFFORT, DIRECTOR_MAX_TOKENS
+from tripcut_pipeline.config.order_constants import ORDER_MOOD
 from tripcut_pipeline.direct.build_director_content import build_director_content
 from tripcut_pipeline.direct.build_edit_lists import build_edit_lists
-from tripcut_pipeline.direct.director_prompt_constants import DIRECTOR_SYSTEM_PROMPT
+from tripcut_pipeline.direct.director_prompt_constants import DIRECTOR_SYSTEM_PROMPT, DIRECTOR_TIMELINE_PROMPT
 from tripcut_pipeline.direct.director_request import DirectorRequest
 from tripcut_pipeline.direct.director_result import DirectorResult
 from tripcut_pipeline.direct.load_edit_list_schema import load_edit_list_schema
@@ -38,12 +39,15 @@ class ClaudeHaikuDirectorService:
         tokens_in = 0
         tokens_out = 0
         notes: list[str] = []
+        system_prompt = DIRECTOR_TIMELINE_PROMPT
+        if request.order == ORDER_MOOD:
+            system_prompt = DIRECTOR_SYSTEM_PROMPT
         for attempt in range(1, DIRECTOR_ATTEMPTS + 1):
             try:
                 response = self._client.messages.create(
                     model=self._model,
                     max_tokens=DIRECTOR_MAX_TOKENS,
-                    system=DIRECTOR_SYSTEM_PROMPT,
+                    system=system_prompt,
                     messages=[{"role": "user", "content": content}],
                     output_config={"effort": DIRECTOR_EFFORT, "format": {"type": "json_schema", "schema": schema}},
                 )

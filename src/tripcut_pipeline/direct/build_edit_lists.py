@@ -10,7 +10,8 @@ def build_edit_lists(request: DirectorRequest, title: str, shots_by_version: dic
     for version in VERSIONS:
         edit_lists.append(
             build_edit_list(
-                version, title, shots_by_version[version], segments_by_id, request.duration_s, request.music_ids[version]
+                version, title, shots_by_version[version], segments_by_id, request.duration_s, request.music_ids[version],
+                request.order,
             )
         )
     return edit_lists

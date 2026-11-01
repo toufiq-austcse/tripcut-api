@@ -30,7 +30,7 @@ uv run tripcut ./eval/trips/lisbon --out ./out/lisbon
 | `out/lisbon/edit_lists/<version>.director.json` | edit list as the director returned it |
 | `out/lisbon/metrics.json` | per stage: wall_s, core_s, peak_rss_mb (+ tokens for `direct`) |
 
-Options: `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`, plus the music, transition and loudness options below.
+Options: `--director haiku|fallback`, `--duration 30`, `--keep-proxies`, `--verbose`, plus the music, transition, loudness and clip-order options below.
 Env: `TRIPCUT_DIRECTOR` (default `haiku`), `TRIPCUT_MODEL` (default `claude-haiku-5-5`).
 
 ### Music (the user's choice)
@@ -89,6 +89,18 @@ for library tracks, your own tracks and `--music none`.
 
 Env fallback: `TRIPCUT_LOUDNESS`. Allowed range: -30 to -9 LUFS. `metrics.json` → `stages.render.loudness`
 records `before_lufs`, `after_lufs` and `peak_db` per reel.
+### Clip order
+
+| Flag | All 3 reels play the clips in this order |
+|------|------------------------------------------|
+| `--order time` (default) | capture time in the file (`com.apple.quicktime.creationdate`, else `creation_time`), compared as UTC; clips with no time go last |
+| `--order upload` | file names in natural order (`IMG_9` before `IMG_10`); rename to `01_…`, `02_…` to set your own order |
+| `--order mood` | the director orders cinematic / fast by mood (strongest shot first); story keeps filming order |
+
+Env fallback: `TRIPCUT_ORDER`. The director still picks which shots go in each reel; with `time` / `upload`
+the app then puts the picks in clip order, after filling the reel to its length, so the end of the day stays in.
+In timeline order two shots from the same clip can sit next to each other (in `fast` that can look like a jump cut).
+`metrics.json` → `stages.ingest.order` and `stages.ingest.clip_order`; each edit list has an `"order"` field.
 
 If the Claude call fails or returns an invalid answer twice, the CLI uses the no-LLM fallback and sets
 `stages.direct.fallback = true` with the reason.
