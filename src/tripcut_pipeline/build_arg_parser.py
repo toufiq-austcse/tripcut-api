@@ -1,6 +1,7 @@
 import argparse
 
 from tripcut_pipeline.config.director_constants import DIRECTOR_NAMES
+from tripcut_pipeline.config.intro_outro_constants import INTRO_OUTRO_MODES
 from tripcut_pipeline.config.order_constants import ORDER_MODES
 from tripcut_pipeline.config.render_constants import DEFAULT_DURATION_S
 from tripcut_pipeline.config.transition_constants import TRANSITION_MODES
@@ -32,6 +33,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--order", default=None, choices=ORDER_MODES,
                         help="clip order in all 3 reels: time = capture time (default, or $TRIPCUT_ORDER), "
                              "upload = file-name order, mood = the director orders cinematic/fast by mood")
+    parser.add_argument("--intro-outro", default=None, choices=INTRO_OUTRO_MODES,
+                        help="auto = fade in from black and out to black, last shot held (default, or "
+                             "$TRIPCUT_INTRO_OUTRO); off = hard start and end")
     parser.add_argument("--director", default=None, choices=DIRECTOR_NAMES,
                         help="default: $TRIPCUT_DIRECTOR, else haiku")
     parser.add_argument("--duration", type=int, default=DEFAULT_DURATION_S, help="reel length in seconds")

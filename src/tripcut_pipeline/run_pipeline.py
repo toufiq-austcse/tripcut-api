@@ -100,6 +100,7 @@ def run_pipeline(options: PipelineOptions) -> int:
                 audio_mix,
                 options.transition,
                 options.loudness_target,
+                options.intro_outro,
                 work_dir,
                 options.out_dir,
             )
@@ -122,6 +123,7 @@ def run_pipeline(options: PipelineOptions) -> int:
             stage.extra["transitions"] = transitions
             stage.extra["loudness_target"] = options.loudness_target
             stage.extra["loudness"] = loudness
+            stage.extra["intro_outro"] = options.intro_outro
             stage.extra["repeated_footage_s"] = repeated_footage
             stage.extra["same_clip_joins"] = same_clip_joins
     except BadInputError as error:
