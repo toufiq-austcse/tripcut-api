@@ -13,6 +13,7 @@ class PipelineOptions:
     clip_volume: float
     music_volume: float
     transition: str
+    loudness_target: float | None
     director: str
     model: str
     duration_s: int

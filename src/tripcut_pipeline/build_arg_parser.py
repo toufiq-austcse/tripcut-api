@@ -25,6 +25,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--transition", default=None, choices=TRANSITION_MODES,
                         help="auto = crossfade for cinematic/story, cut for fast (default, or $TRIPCUT_TRANSITION); "
                              "cut = plain cuts in all 3; fade = crossfades in all 3")
+    parser.add_argument("--loudness", default=None, metavar="LUFS|off",
+                        help="loudness of every reel in LUFS, e.g. -16 (default, or $TRIPCUT_LOUDNESS) or -14; "
+                             "off = keep the raw mix")
     parser.add_argument("--director", default=None, choices=DIRECTOR_NAMES,
                         help="default: $TRIPCUT_DIRECTOR, else haiku")
     parser.add_argument("--duration", type=int, default=DEFAULT_DURATION_S, help="reel length in seconds")
