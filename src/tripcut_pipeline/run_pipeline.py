@@ -31,7 +31,7 @@ def run_pipeline(options: PipelineOptions) -> int:
         choices = resolve_music_tracks(options.music, options.version_music)
 
         with timer.stage("ingest") as stage:
-            proxies = ingest_trip(options.trip_dir, work_dir / "proxies")
+            proxies = ingest_trip(options.trip_dir, work_dir / "proxies", options.order)
             clips = {proxy.meta.clip_id: proxy.meta for proxy in proxies}
             largest = max(clips.values(), key=lambda clip: clip.width * clip.height)
             metrics["clips"] = len(clips)
@@ -39,6 +39,8 @@ def run_pipeline(options: PipelineOptions) -> int:
             metrics["max_res"] = f"{largest.width}x{largest.height}"
             metrics["codec"] = sorted({clip.codec for clip in clips.values()})
             stage.extra["clips"] = len(clips)
+            stage.extra["order"] = options.order
+            stage.extra["clip_order"] = [proxy.meta.path.name for proxy in proxies]
 
         with timer.stage("score") as stage:
             scored = score_trip(proxies)
@@ -74,6 +76,7 @@ def run_pipeline(options: PipelineOptions) -> int:
                 music_ids=music_ids,
                 segments=scored.kept,
                 clips=clips,
+                order=options.order,
             )
             result = direct_trip(request, options.director, options.model)
             stage.extra["model"] = result.model

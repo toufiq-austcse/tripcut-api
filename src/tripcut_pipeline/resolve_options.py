@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from tripcut_pipeline.config.director_constants import DEFAULT_DIRECTOR, DEFAULT_MODEL, DIRECTOR_NAMES
+from tripcut_pipeline.config.order_constants import DEFAULT_ORDER, ORDER_MODES
 from tripcut_pipeline.config.transition_constants import DEFAULT_TRANSITION, TRANSITION_MODES
 from tripcut_pipeline.config.music_constants import DEFAULT_CLIP_VOLUME, DEFAULT_MUSIC_VOLUME, MUSIC_LIBRARY
 from tripcut_pipeline.errors.bad_input_error import BadInputError
@@ -16,7 +17,8 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
 
     --director > TRIPCUT_DIRECTOR > haiku; TRIPCUT_MODEL > claude-haiku-5-5; --music > TRIPCUT_MUSIC > library;
     --clip-volume > TRIPCUT_CLIP_VOLUME > 0.25; --music-volume > TRIPCUT_MUSIC_VOLUME > 1.0;
-    --transition > TRIPCUT_TRANSITION > auto; --loudness > TRIPCUT_LOUDNESS > -16 (off = None).
+    --transition > TRIPCUT_TRANSITION > auto; --loudness > TRIPCUT_LOUDNESS > -16 (off = None);
+    --order > TRIPCUT_ORDER > time.
     """
     director = args.director
     if director is None:
@@ -52,6 +54,14 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
 
     loudness_target = resolve_loudness(args.loudness)
 
+    order = args.order
+    if order is None:
+        order = os.environ.get("TRIPCUT_ORDER")
+    if order is None or order == "":
+        order = DEFAULT_ORDER
+    if order not in ORDER_MODES:
+        raise BadInputError(f"TRIPCUT_ORDER must be one of {ORDER_MODES}, got {order!r}")
+
     return PipelineOptions(
         trip_dir=Path(args.trip_dir).expanduser().resolve(),
         out_dir=Path(args.out).expanduser().resolve(),
@@ -61,6 +71,7 @@ def resolve_options(args: argparse.Namespace) -> PipelineOptions:
         music_volume=music_volume,
         transition=transition,
         loudness_target=loudness_target,
+        order=order,
         director=director,
         model=model,
         duration_s=args.duration,

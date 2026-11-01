@@ -1,5 +1,7 @@
 from tripcut_pipeline.config.director_constants import VERSION_SHOT_SECONDS
+from tripcut_pipeline.config.order_constants import ORDER_MOOD
 from tripcut_pipeline.config.transition_constants import VERSION_TRANSITION_SECONDS, VERSION_TRANSITIONS
+from tripcut_pipeline.direct.order_shots import order_shots
 from tripcut_pipeline.score.segment import Segment
 
 
@@ -10,10 +12,13 @@ def build_edit_list(
     segments_by_id: dict[str, Segment],
     duration_s: int,
     music_id: str | None,
+    order: str,
 ) -> dict:
     """Director choice (segment ids) -> renderer contract (clip_id, in, out) per TDD-001 §8.4.
 
     Each shot takes the middle of its segment, up to the version's shot length, until the reel is full.
+    The reel is filled in the director's priority; then, unless order is mood, the kept shots are put in
+    timeline order, so the end of the day is not cut off.
     """
     target = VERSION_SHOT_SECONDS[version]
     total = 0.0
@@ -43,8 +48,11 @@ def build_edit_list(
             }
         )
         total += length
+    if order != ORDER_MOOD:
+        contract_shots = order_shots(contract_shots)
     return {
         "version": version,
+        "order": order,
         "duration_s": duration_s,
         "music_id": music_id,
         "title": title,

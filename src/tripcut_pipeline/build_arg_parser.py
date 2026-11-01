@@ -1,6 +1,7 @@
 import argparse
 
 from tripcut_pipeline.config.director_constants import DIRECTOR_NAMES
+from tripcut_pipeline.config.order_constants import ORDER_MODES
 from tripcut_pipeline.config.render_constants import DEFAULT_DURATION_S
 from tripcut_pipeline.config.transition_constants import TRANSITION_MODES
 
@@ -28,6 +29,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--loudness", default=None, metavar="LUFS|off",
                         help="loudness of every reel in LUFS, e.g. -16 (default, or $TRIPCUT_LOUDNESS) or -14; "
                              "off = keep the raw mix")
+    parser.add_argument("--order", default=None, choices=ORDER_MODES,
+                        help="clip order in all 3 reels: time = capture time (default, or $TRIPCUT_ORDER), "
+                             "upload = file-name order, mood = the director orders cinematic/fast by mood")
     parser.add_argument("--director", default=None, choices=DIRECTOR_NAMES,
                         help="default: $TRIPCUT_DIRECTOR, else haiku")
     parser.add_argument("--duration", type=int, default=DEFAULT_DURATION_S, help="reel length in seconds")
